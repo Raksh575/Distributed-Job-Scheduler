@@ -1,0 +1,98 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: djs_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-djs_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-djs_password}
+      POSTGRES_DB: ${POSTGRES_DB:-djs_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: djs_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: djs_backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-djs_admin}:${POSTGRES_PASSWORD:-djs_password}@db:5432/${POSTGRES_DB:-djs_db}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-super_secret_jwt_key_at_least_32_characters_long_for_security}
+      - ENVIRONMENT=development
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: djs_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: djs_worker
+    restart: unless-stopped
+    command: python -m app.workers.runner
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-djs_admin}:${POSTGRES_PASSWORD:-djs_password}@db:5432/${POSTGRES_DB:-djs_db}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-super_secret_jwt_key_at_least_32_characters_long_for_security}
+      - ENVIRONMENT=development
+      - WORKER_NAME=djs_worker_node_1
+      - QUEUE_NAME=default-task-queue
+      - WORKER_CONCURRENCY=10
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+volumes:
+  postgres_data:
+  redis_data:

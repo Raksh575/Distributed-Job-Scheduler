@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="aetherGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4FACFE"/>
+      <stop offset="100%" stop-color="#00F2FE"/>
+    </linearGradient>
+    <linearGradient id="aetherGradientDark" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A2980"/>
+      <stop offset="100%" stop-color="#26D0CE"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <g filter="url(#glow)">
+    <path d="M128 200c-39.765 0-72-32.235-72-72 0-39.765 32.235-72 72-72 26.166 0 49.07 14.004 61.272 34.908l17.272-9.98C190.69 53.64 161.42 36 128 36 78.294 36 38 76.294 38 126s40.294 90 90 90c33.42 0 62.69-17.64 78.544-44.928l-17.272-9.98C177.07 181.996 154.166 196 128 196z" fill="url(#aetherGradient)"/>
+    <path d="M128 56c39.765 0 72 32.235 72 72 0 39.765-32.235 72-72 72-26.166 0-49.07-14.004-61.272-34.908l-17.272 9.98C65.31 202.36 94.58 220 128 220c49.706 0 90-40.294 90-90s-40.294-90-90-90c-33.42 0-62.69 17.64-78.544 44.928l17.272 9.98C78.93 74.004 101.834 60 128 60z" fill="url(#aetherGradientDark)" opacity="0.9"/>
+    
+    <circle cx="128" cy="128" r="28" fill="url(#aetherGradient)"/>
+  </g>
+</svg>
